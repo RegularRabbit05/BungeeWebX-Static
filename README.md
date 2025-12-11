@@ -1,0 +1,1 @@
+Frontend dashboard for https://github.com/regularRabbit05/BungeeWebX
