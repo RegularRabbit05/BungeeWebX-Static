@@ -9,6 +9,7 @@ var lang = {};
 var session = {};
 var pages = {};
 var activepage = {};
+var ipInfoCache = {};
 
 // Load handler
 $(document).ready(function() {
@@ -337,17 +338,66 @@ function parse(data, _) {
 	return data;
 }
 
+function formatIpInfo(ipinfo) {
+	var out = '';
+	if ('as_name' in ipinfo) {
+		out += 'ISP: ' + ipinfo.as_name + '; ';
+	}
+	if ('as_domain' in ipinfo) {
+		out += 'Domain: ' + ipinfo.as_domain + '; ';
+	}
+	if ('country' in ipinfo) {
+		out += 'Country: ' + ipinfo.country + '; ';
+	}
+	if ('continent' in ipinfo) {
+		out += 'Continent: ' + ipinfo.continent + '; ';
+	}
+	if ('out' == '') {
+		out = 'No data available';
+	}
+	return out;
+}
+
 // Log handler
 function formatLog(log, linked) {
 	msg = lang.logs[log.type].entry;
+
+	var hoverStart = '';
+	var hoverEnd = '';
+
+	if (log.type == 3) {
+		var logIp = log.content;
+		logIp = logIp.split(':')[0];
+		if (logIp.startsWith('/')) {
+			logIp = logIp.substring(1);
+		}
+		if (logIp in ipInfoCache) {
+			var ipinfoData = ipInfoCache[logIp];
+			if (ipinfoData == "null") {
+				hoverStart = '<div class="ipinfo" data-ip="' + logIp + '">';
+				hoverEnd = '</div>';
+			} else {
+				hoverStart = '<div title="IPInfo data: ' + formatIpInfo(ipinfoData) + '">';
+				hoverEnd = '</div>';
+			}
+		} else {
+			ipInfoCache[logIp] = "null";
+			hoverStart = '<div class="ipinfo" data-ip="' + logIp + '">';
+			hoverEnd = '</div>';
+			$.get('overlay/api/getipinfo?ip=' + logIp, function(data) {
+				ipInfoCache[logIp] = data;
+				$('.ipinfo[data-ip="' + logIp + '"]').attr('title', 'IPInfo data: ' + formatIpInfo(data));
+			});
+		}
+	}
 	
 	if (linked) {
 		msg = msg.replace('{PLAYER}', '<a class="playerlink" data-player="{UUID}">{PLAYER}</a>');
 	}
 	
-	return msg.replace('{PLAYER}', log.username)
+	return hoverStart + msg.replace('{PLAYER}', log.username)
 		.replace('{UUID}', log.uuid)
-		.replace('{CONTENT}', strip(log.content));
+		.replace('{CONTENT}', strip(log.content)) + hoverEnd;
 }
 
 // Parse text with HTML entities

@@ -13,9 +13,10 @@
 		"directory": "./dist/",
 		"binding": "ASSETS",
 		"not_found_handling": "single-page-application",
-		"run_worker_first": ["/api/*", "/login", "/logout", "/css/theme.css"]
+		"run_worker_first": ["/overlay/*", "/api/*", "/login", "/logout", "/css/theme.css"]
   	},
 	"vars": {
-		"BACKEND_HOSTNAME": "api.example.com/"
+		"BACKEND_HOSTNAME": "api.example.com/",
+		"IPAPI_KEY": "Your ipinfo.io Key Here",
 	}
 }
